@@ -22,3 +22,5 @@ Rubric:
 
 <img src="Images/Octahedron.jpg" width="300">
 <br/>Figure 3: 3D Octahedron.
+
+**Calificación: 100**
