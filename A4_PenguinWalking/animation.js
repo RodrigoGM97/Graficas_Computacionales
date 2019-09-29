@@ -26,6 +26,8 @@ var rotateHeadKeys = [];
 first_line = [{x:0,y:0,z:0},{x:30,y:0,z:-10}]
 loop_coords = [];
 loop_keys = [];
+loop_coords_sun = [];
+loop_coords_sun_keys = [];
 
 x_size = 50;
 radius = 20;
@@ -58,6 +60,11 @@ function createScene(canvas)
 
     // Create a new Three.js scene
     scene = new THREE.Scene();
+
+    texture = new THREE.TextureLoader().load("../images/nebula.jpg");
+    material = new THREE.MeshPhongMaterial({ map: texture });
+    //scene.background = new THREE.Color( 0.3, 0.3, 0.3 );
+    scene.background = texture;
 
 
     // Add  a camera so we can view the scene
@@ -110,7 +117,7 @@ function createScene(canvas)
     var objLoader = new THREE.OBJLoader();
     objLoader.load('Penguin_obj/penguin.obj', function (object) {
         penguin = object;
-        penguin.position.set(0, 0, 0);
+        penguin.position.set(-0.5, -0.5, -0.5);
         penguin.scale.set(0.5, 0.5, 0.5);
 
         group.add(penguin);
@@ -124,10 +131,19 @@ function createScene(canvas)
             }
         } );
     });
+
+    geometry = new THREE.SphereGeometry(10, 10, 10);
+    texture = new THREE.TextureLoader().load("../images/sunmap3.jpg");
+    material = new THREE.MeshBasicMaterial({ map: texture });
+    sun = new THREE.Mesh(geometry, material);
+    //sun.position.set(0,40,-20);
+    root.add(sun);
     
     loop_coords_f();
     rotationCoords();
+    sunCoords();
     playAnimations();
+    
     // Now add the group to our scene
     scene.add( root );
 }
@@ -136,7 +152,9 @@ function playAnimations()
 {
     step();
     loop_translate();
+    animate_light();
     //rotate_body();
+    rotateSun();
     
 }
 
@@ -251,9 +269,29 @@ function rotationCoords()
 
     //Second Line
 
+    x = 0;
+    y = 0;
+    z = 0;
+    coords =  {x,y,z};
+    
+    angle = Math.atan(radius / x_size);
+    y = angle - Math.PI/1.2;
+    coords =  {x,y,z};
+    rotateHeadCoords.push(coords);
+    rotateHeadCoords.push(coords);
+    rotateHeadKeys.push(.376);
+    rotateHeadKeys.push(.625);
+
     //Left Circle
 
     //Third Line
+    angle = Math.atan(radius / x_size);
+    y = angle + 1.5708;
+    coords =  {x,y,z};
+    rotateHeadCoords.push(coords);
+    rotateHeadCoords.push(coords);
+    rotateHeadKeys.push(0.876);
+    rotateHeadKeys.push(1); 
 }
 
 function loop_translate()
@@ -293,9 +331,9 @@ function step()
                         keys:[0, 0.25, .5, .75, 1], 
                         values:[
                                 { z : 0 },
-                                { z : 5.05 },
+                                { z : 0.05 },
                                 { z : 0 },
-                                { z : -5.05 },
+                                { z : -0.05 },
                                 { z : 0 },
                                 ],
                         target:group.rotation
@@ -328,5 +366,72 @@ function rotate_body()
         stepAnimator.start();
 }
 
+function animate_light()
+{
+    lightAnimator = new KF.KeyFrameAnimator;
+        lightAnimator.init({ 
+            interps:
+                [
+                    { 
+                        keys:[0, 0.2, 0.4, 0.6, 0.8, 1], 
+                        values:[
+                                { r: 0.5, g : 0.5, b: 0.5 },
+                                { r: 1, g : 1, b: 1 },
+                                { r: 0.5, g : 0.5, b: 0.5 },
+                                { r: 0, g : 0, b: 0 },
+                                { r: 0, g : 0, b: 0 },
+                                { r: 0, g : 0, b: 0 },
+                                ],
+                        target:directionalLight.color
+                    },
+                ],
+            loop: true,
+            duration:10 * 1000,
+        });
+    
+        lightAnimator.start();
+}
+
+function sunCoords()
+{
+    
+    for (var theta=0; theta<=Math.PI*2; theta+=0.0174533)
+    {
+        x = 100 * Math.cos(theta);
+        y = 100 * Math.sin(theta);
+        z = -20;
+        coords = {x,y,z};
+        //console.log("coords: "+coords.z);
+        loop_coords_sun.push(coords);
+    }
+
+    for(var i=0;i<1;i+=1/358)
+    {
+        loop_coords_sun_keys.push(i);
+    }
+    loop_coords_sun_keys.push(1);
+    //console.log("Suncoords: "+loop_coords_sun.length);
+    //console.log("Sunkeys: "+loop_coords_sun_keys);
 
 
+}
+
+function rotateSun()
+{
+    sunAnimator = new KF.KeyFrameAnimator;
+        sunAnimator.init({ 
+            interps:
+                [
+                    { 
+                        keys:loop_coords_sun_keys, 
+                        values:loop_coords_sun,
+                        target:sun.position
+                    },
+                ],
+            loop: true,
+            duration:duration * 1000,
+            //easing:TWEEN.Easing.Sinusoidal.In,
+        });
+    
+        sunAnimator.start();
+}
