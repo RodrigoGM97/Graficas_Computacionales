@@ -2,6 +2,7 @@ var renderer = null;
 var scene = null;
 var camera = null;
 var group = null;
+var father = null;
 var directionalLight = null;
 var floor = null;
 var camera_control = null;
@@ -28,6 +29,8 @@ loop_coords = [];
 loop_keys = [];
 loop_coords_sun = [];
 loop_coords_sun_keys = [];
+loop_coords_balance = [];
+loop_coords_balance_keys = [];
 
 x_size = 50;
 radius = 20;
@@ -61,11 +64,11 @@ function createScene(canvas)
     // Create a new Three.js scene
     scene = new THREE.Scene();
 
+
     texture = new THREE.TextureLoader().load("../images/nebula.jpg");
     material = new THREE.MeshPhongMaterial({ map: texture });
     //scene.background = new THREE.Color( 0.3, 0.3, 0.3 );
     scene.background = texture;
-
 
     // Add  a camera so we can view the scene
     camera = new THREE.PerspectiveCamera(45, canvas.width / canvas.height, 1, 4000);
@@ -88,7 +91,9 @@ function createScene(canvas)
     
     // Create a group to hold the objects
     group = new THREE.Object3D;
+    father = new THREE.Object3D;
     root.add(group);
+    root.add(father);
 
     // Create a texture map
     var waterMap = new THREE.TextureLoader().load(floorMapURL);
@@ -133,14 +138,16 @@ function createScene(canvas)
     });
 
     geometry = new THREE.SphereGeometry(10, 10, 10);
-    texture = new THREE.TextureLoader().load("../images/sunmap3.jpg");
+    texture = new THREE.TextureLoader().load("../images/sunmap2.jpg");
     material = new THREE.MeshBasicMaterial({ map: texture });
     sun = new THREE.Mesh(geometry, material);
     //sun.position.set(0,40,-20);
     root.add(sun);
+    father.add(group);
     
     loop_coords_f();
     rotationCoords();
+    balanceCoords();
     sunCoords();
     playAnimations();
     
@@ -294,6 +301,51 @@ function rotationCoords()
     rotateHeadKeys.push(1); 
 }
 
+function balanceCoords()
+{
+    for (var i=2; i<=361/5; i+=1)
+    {      
+        x = 0;
+        y = 0;
+        z = 0;
+        coords = {x,y,z};
+        //console.log("coords: "+coords.z);
+        loop_coords_balance.push(coords);
+
+        x = 0;
+        y = 0;
+        z = 0.05;
+        coords = {x,y,z};
+        //console.log("coords: "+coords.z);
+        loop_coords_balance.push(coords);
+        x = 0;
+        y = 0;
+        z = 0;
+        coords = {x,y,z};
+        //console.log("coords: "+coords.z);
+        loop_coords_balance.push(coords);
+        x = 0;
+        y = 0;
+        z = -0.05;
+        coords = {x,y,z};
+        //console.log("coords: "+coords.z);
+        loop_coords_balance.push(coords);
+        x = 0;
+        y = 0;
+        z = 0;
+        coords = {x,y,z};
+        //console.log("coords: "+coords.z);
+        loop_coords_balance.push(coords);
+    }
+    //.126 - .375
+    for (var keys=0.001;keys<=1;keys+=1/360)
+    {
+        loop_coords_balance_keys.push(keys);
+    }
+
+    console.log("Coords: "+ loop_coords_balance.length);
+}
+
 function loop_translate()
 {
     right_circle_anim = new KF.KeyFrameAnimator;
@@ -303,12 +355,12 @@ function loop_translate()
                 { 
                     keys:loop_keys, 
                     values:loop_coords,
-                    target:group.position
+                    target:father.position
                 },
                 { 
                     keys:rotateHeadKeys, 
                     values:rotateHeadCoords,
-                    target:group.rotation
+                    target:father.rotation
                 }
             ],
         loop: true,
@@ -328,19 +380,14 @@ function step()
             interps:
                 [
                     { 
-                        keys:[0, 0.25, .5, .75, 1], 
-                        values:[
-                                { z : 0 },
-                                { z : 0.05 },
-                                { z : 0 },
-                                { z : -0.05 },
-                                { z : 0 },
-                                ],
+                        //364 keys
+                        keys:loop_coords_balance_keys, 
+                        values:loop_coords_balance,
                         target:group.rotation
                     }
                 ],
             loop: true,
-            duration:3 * 1000,
+            duration:20 * 1000,
             //easing:TWEEN.Easing.Bounce.InOut,
 
         });
@@ -356,7 +403,7 @@ function rotate_body()
                     { 
                         keys:rotateHeadKeys, 
                         values:rotateHeadCoords,
-                        target:group.rotation
+                        target:father.rotation
                     }
                 ],
             duration:20 * 1000,
