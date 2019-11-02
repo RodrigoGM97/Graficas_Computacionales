@@ -20,3 +20,4 @@ Based on the Class demos, create a 3D [zerg rush](https://elgoog.im/zergrush/) s
 - UI feedback messages (to start or restart the game) were correctly displayed.
 
 **Deadline:** 24/09/2019
+**Grade: 100**
